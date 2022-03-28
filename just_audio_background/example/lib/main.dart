@@ -5,6 +5,9 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:just_audio_example/common.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:path_provider/path_provider.dart';
+
+late final directories;
 
 Future<void> main() async {
   await JustAudioBackground.init(
@@ -12,58 +15,59 @@ Future<void> main() async {
     androidNotificationChannelName: 'Audio playback',
     androidNotificationOngoing: true,
   );
+
+  directories = await getExternalStorageDirectories();
+
+  if (directories != null) {
+    for (var i = 0; i < directories.length; i++) {
+      print("externalStoragePath: " +
+          directories[i].path +
+          " / index : " +
+          i.toString());
+    }
+  }
+
   runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
   @override
-  _MyAppState createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MainPage(),
+      routes: <String, WidgetBuilder>{
+        '/home': (BuildContext context) => new MainPage(),
+        '/subpage': (BuildContext context) => new SubPage(),
+      },
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
+class SubPage extends StatelessWidget {
+  const SubPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+class MainPage extends StatefulWidget {
+  @override
+  _MainPageState createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
   static int _nextMediaId = 0;
   late AudioPlayer _player;
   final _playlist = ConcatenatingAudioSource(children: [
-    ClippingAudioSource(
-      start: Duration(seconds: 60),
-      end: Duration(seconds: 90),
-      child: AudioSource.uri(Uri.parse(
-          "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3")),
+    AudioSource.uri(
+      Uri.file(directories[directories.length - 1].path + "/test.mp3"),
       tag: MediaItem(
         id: '${_nextMediaId++}',
         album: "Science Friday",
         title: "A Salute To Head-Scratching Science (30 seconds)",
-        artUri: Uri.parse(
-            "https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
-      ),
-    ),
-    AudioSource.uri(
-      Uri.parse(
-          "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3"),
-      tag: MediaItem(
-        id: '${_nextMediaId++}',
-        album: "Science Friday",
-        title: "A Salute To Head-Scratching Science",
-        artUri: Uri.parse(
-            "https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
-      ),
-    ),
-    AudioSource.uri(
-      Uri.parse("https://s3.amazonaws.com/scifri-segments/scifri201711241.mp3"),
-      tag: MediaItem(
-        id: '${_nextMediaId++}',
-        album: "Science Friday",
-        title: "From Cat Rheology To Operatic Incompetence",
-        artUri: Uri.parse(
-            "https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
-      ),
-    ),
-    AudioSource.uri(
-      Uri.parse("asset:///audio/nature.mp3"),
-      tag: MediaItem(
-        id: '${_nextMediaId++}',
-        album: "Public Domain",
-        title: "Nature Sounds",
         artUri: Uri.parse(
             "https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
       ),
@@ -270,7 +274,8 @@ class _MyAppState extends State<MyApp> {
           child: Icon(Icons.add),
           onPressed: () {
             _playlist.add(AudioSource.uri(
-              Uri.parse("asset:///audio/nature.mp3"),
+              Uri.parse(
+                  "file:///storage/80E7-11FB/Android/data/jp.co.bwj.pokedoraandroid.dev/files/contents/fd8e99b43d8cf077d7d275f2c5282bc9/c5d8d1ddc4172b9c76258b28ba7ea07a"),
               tag: MediaItem(
                 id: '${_nextMediaId++}',
                 album: "Public Domain",
